@@ -1,5 +1,14 @@
 M = {}
 
+M.Opcode = {
+   -- ContinuationFrame = 0,
+   TextFrame = 1,
+   -- BinaryFrame = 2,
+   -- ConnectionCloseFrame = 8,
+   PingFrame = 9,
+   PongFrame = 10
+}
+
 local socket = nil
 local is_connected = false
 local on_connect_callback = nil
@@ -74,6 +83,32 @@ local function decode_frame(frame)
     end
 end
 
+M.send = function(data)
+    print("send", data)
+    
+    if is_connected == false then 
+        print("Websocket not connected, so cannot send.")
+        return
+    end 
+    
+    if #data > 126 then 
+        print("Lib only supports max len 126 currently")
+        return
+    end
+    
+    local binstr, payload_len
+
+    payload_len = #data
+    payload_len = bit.set(payload_len, 7)
+    
+    binstr = string.char(bit.set(0x1, 7))
+        .. string.char(payload_len)
+        .. string.char(0x0, 0x0, 0x0, 0x0)
+        .. data
+    
+    socket:send(binstr)
+end
+
 M.connect = function(ws_url)
     local host, port, path = string.match(ws_url, 'ws://(.-):(.-)/(.*)')
     local is_header_received = false
@@ -128,32 +163,6 @@ M.connect = function(ws_url)
     end)
 
     socket:connect(port, host)
-end
-
-M.send = function(data)
-    print("send", data)
-    
-    if is_connected == false then 
-        print("Websocket not connected, so cannot send.")
-        return
-    end 
-    
-    if #data > 126 then 
-        print("Lib only supports max len 126 currently")
-        return
-    end
-    
-    local binstr, payload_len 
-
-    payload_len = #data
-    payload_len = bit.set(payload_len, 7)
-    
-    binstr = string.char(bit.set(0x1, 7))
-        .. string.char(payload_len)
-        .. string.char(0x0, 0x0, 0x0, 0x0)
-        .. data
-    
-    socket:send(binstr)
 end
 
 return M
