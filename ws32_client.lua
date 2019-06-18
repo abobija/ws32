@@ -81,7 +81,7 @@ local function decode_frame(frame)
         len_expected = 0
     
         if on_receive_callback ~= nil then 
-            on_receive_callback(buffer)
+            on_receive_callback(buffer, M)
         end
     
         buffer = ''
