@@ -40,7 +40,7 @@ local function decode_frame(frame)
         local opcode = frame:byte(1)
         opcode = bit.clear(opcode, 4, 5, 6, 7)
         
-        print("Opcode:", opcode)
+        -- print("Opcode:", opcode)
 
         if opcode == M.Opcode.PingFrame then
             M.send('', M.Opcode.PongFrame)
@@ -89,17 +89,15 @@ local function decode_frame(frame)
 end
 
 M.send = function(data, opcode)
-    print("send", data)
-
     opcode = opcode or M.Opcode.TextFrame
     
     if is_connected == false then 
-        print("Websocket not connected, so cannot send.")
+        print("[WebSocket] Not connected, so cannot send.")
         return
     end 
     
     if #data > 126 then 
-        print("Lib only supports max len 126 currently")
+        print("[WebSocket] Lib only supports max len 126 currently")
         return
     end
     
@@ -134,30 +132,25 @@ M.connect = function(ws_url)
     socket = net.createConnection(net.TCP)
 
     socket:on("sent", function()
-        print("socket:sent")
+        -- print("[WebSocket]:sent")
     end)
     
     socket:on('disconnection', function(errcode)
-        print("socket:disconnection", errcode)
+        print("[WebSocket]:disconnection", errcode)
     end)
     
     socket:on('reconnection', function(errcode)
-        print('Reconnection. err:', errcode)
+        print('[WebSocket]:reconnection', errcode)
     end)
     
     socket:on("connection", function(sck)
-        print("soket:connection")
         socket:send(handshake)
     end)
 
-    socket:on("receive", function(sck, data) 
-        print('socket:receive')
-        print(data)
-    
+    socket:on("receive", function(sck, data)
         if is_header_received == false then
             if string.match(data, "HTTP/1.1 101(.*)\r\n\r\n") then 
                 is_header_received = true
-                print('handshake done')
                 
                 if on_connect_callback ~= nil then
                     is_connected = true
