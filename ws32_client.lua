@@ -11,14 +11,14 @@ M.Opcode = {
 
 local socket = nil
 local is_connected = false
-local on_connect_callback = nil
-local on_data_callback = nil
+local on_connection_callback = nil
+local on_receive_callback = nil
 
 M.on = function(callback_str, callback_foo)
-    if callback_str == 'connect' then
-        on_connect_callback = callback_foo
-    elseif callback_str == 'data' then
-        on_data_callback = callback_foo
+    if callback_str == 'connection' then
+        on_connection_callback = callback_foo
+    elseif callback_str == 'receive' then
+        on_receive_callback = callback_foo
     end
     
     return M
@@ -80,8 +80,8 @@ local function decode_frame(frame)
     if len_expected <= 0 then
         len_expected = 0
     
-        if on_data_callback ~= nil then 
-            on_data_callback(buffer)
+        if on_receive_callback ~= nil then 
+            on_receive_callback(buffer)
         end
     
         buffer = ''
@@ -131,17 +131,17 @@ M.connect = function(ws_url)
     
     socket = net.createConnection(net.TCP)
 
-    socket:on("sent", function()
-        -- print("[WebSocket]:sent")
-    end)
+    --socket:on("sent", function()
+    --     print("[WebSocket]:sent")
+    --end)
     
-    socket:on('disconnection', function(errcode)
-        print("[WebSocket]:disconnection", errcode)
-    end)
+    --socket:on('disconnection', function(errcode)
+    --    print("[WebSocket]:disconnection", errcode)
+    --end)
     
-    socket:on('reconnection', function(errcode)
-        print('[WebSocket]:reconnection', errcode)
-    end)
+    --socket:on('reconnection', function(errcode)
+    --    print('[WebSocket]:reconnection', errcode)
+    --end)
     
     socket:on("connection", function(sck)
         socket:send(handshake)
@@ -151,10 +151,10 @@ M.connect = function(ws_url)
         if is_header_received == false then
             if string.match(data, "HTTP/1.1 101(.*)\r\n\r\n") then 
                 is_header_received = true
+                is_connected = true
                 
-                if on_connect_callback ~= nil then
-                    is_connected = true
-                    on_connect_callback(M)
+                if on_connection_callback ~= nil then
+                    on_connection_callback(M)
                 end
             end
         else
