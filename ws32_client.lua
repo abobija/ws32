@@ -41,6 +41,11 @@ local function decode_frame(frame)
         opcode = bit.clear(opcode, 4, 5, 6, 7)
         
         print("Opcode:", opcode)
+
+        if opcode == M.Opcode.PingFrame then
+            M.send('', M.Opcode.PongFrame)
+            return
+        end
     
         local plen = frame:byte(2)
         local mask = bit.isset(plen, 7)
@@ -83,8 +88,10 @@ local function decode_frame(frame)
     end
 end
 
-M.send = function(data)
+M.send = function(data, opcode)
     print("send", data)
+
+    opcode = opcode or M.Opcode.TextFrame
     
     if is_connected == false then 
         print("Websocket not connected, so cannot send.")
@@ -101,7 +108,7 @@ M.send = function(data)
     payload_len = #data
     payload_len = bit.set(payload_len, 7)
     
-    binstr = string.char(bit.set(0x1, 7))
+    binstr = string.char(bit.set(opcode, 7))
         .. string.char(payload_len)
         .. string.char(0x0, 0x0, 0x0, 0x0)
         .. data
