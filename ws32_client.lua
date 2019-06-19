@@ -139,14 +139,14 @@ M.connect = function(ws_url)
         is_connected = false
     end)
     
-    --socket:on('reconnection', function(errcode)
-    --    print('[WebSocket]:reconnection', errcode)
-    --end)
+    socket:on('reconnection', function(errcode)
+        is_connected = false
+    end)
     
     socket:on("connection", function(sck)
         socket:send(handshake)
     end)
-
+    
     socket:on("receive", function(sck, data)
         if is_header_received == false then
             if string.match(data, "HTTP/1.1 101(.*)\r\n\r\n") then 
