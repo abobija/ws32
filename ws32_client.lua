@@ -135,9 +135,9 @@ M.connect = function(ws_url)
     --     print("[WebSocket]:sent")
     --end)
     
-    --socket:on('disconnection', function(errcode)
-    --    print("[WebSocket]:disconnection", errcode)
-    --end)
+    socket:on('disconnection', function(errcode)
+        is_connected = false
+    end)
     
     --socket:on('reconnection', function(errcode)
     --    print('[WebSocket]:reconnection', errcode)
