@@ -13,12 +13,15 @@ local socket = nil
 local is_connected = false
 local on_connection_callback = nil
 local on_receive_callback = nil
+local on_disconnection_callback = nil
 
 M.on = function(callback_str, callback_foo)
     if callback_str == 'connection' then
         on_connection_callback = callback_foo
     elseif callback_str == 'receive' then
         on_receive_callback = callback_foo
+    elseif callback_str == 'disconnection' then
+        on_disconnection_callback = callback_foo
     end
     
     return M
@@ -137,10 +140,18 @@ M.connect = function(ws_url)
     
     socket:on('disconnection', function(errcode)
         is_connected = false
+
+        if on_disconnection_callback ~= nil then
+            on_disconnection_callback(errcode, M)
+        end
     end)
     
     socket:on('reconnection', function(errcode)
         is_connected = false
+
+        if on_disconnection_callback ~= nil then
+            on_disconnection_callback(errcode, M)
+        end
     end)
     
     socket:on("connection", function(sck)
