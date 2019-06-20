@@ -118,6 +118,10 @@ M.send = function(data, opcode)
 end
 
 M.connect = function(ws_url)
+    if ws_url:sub(-1) ~= '/' then
+        ws_url = ws_url .. '/'
+    end
+
     local host, port, path = string.match(ws_url, 'ws://(.-):(.-)/(.*)')
     local is_header_received = false
     
