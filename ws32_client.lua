@@ -163,8 +163,8 @@ M.connect = function(url, options)
     --socket:on("sent", function()
     --     print("[WebSocket]:sent")
     --end)
-    
-    socket:on('disconnection', function(errcode)
+
+    local on_disconnection = function(errcode)
         is_connected = false
         is_header_received = false
 
@@ -175,20 +175,11 @@ M.connect = function(url, options)
         if M.options.auto_reconnect then
             M.reconnect()
         end
-    end)
+    end
     
-    socket:on('reconnection', function(errcode)
-        is_connected = false
-        is_header_received = false
-
-        if on_disconnection_callback ~= nil then
-            on_disconnection_callback(errcode, M)
-        end
-
-        if M.options.auto_reconnect then
-            M.reconnect()
-        end
-    end)
+    socket:on('disconnection', on_disconnection)
+    
+    socket:on('reconnection', on_disconnection)
     
     socket:on("connection", function(sck)
         socket:send(handshake)
