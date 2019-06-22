@@ -128,7 +128,9 @@ local function extend(tbl, with)
 end
 
 M.reconnect = function()
-    M.connect(M.url, M.options)
+    tmr.create():alarm(5000, tmr.ALARM_SINGLE, function()
+        M.connect(M.url, M.options)
+    end)
 end
 
 M.connect = function(url, options)
