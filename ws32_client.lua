@@ -117,12 +117,32 @@ M.send = function(data, opcode)
     socket:send(binstr)
 end
 
-M.connect = function(ws_url)
-    if ws_url:sub(-1) ~= '/' then
-        ws_url = ws_url .. '/'
+local function extend(tbl, with)
+    if with ~= nil then
+        for k, v in pairs(with) do
+            tbl[k] = with[k]
+        end
     end
 
-    local host, port, path = string.match(ws_url, 'ws://(.-):(.-)/(.*)')
+    return tbl
+end
+
+M.reconnect = function()
+    M.connect(M.url, M.options)
+end
+
+M.connect = function(url, options)
+    M.url = url
+    
+    M.options = extend({
+        auto_reconnect = false
+    }, options)
+    
+    if M.url:sub(-1) ~= '/' then
+        M.url = M.url .. '/'
+    end
+
+    local host, port, path = string.match(M.url, 'ws://(.-):(.-)/(.*)')
     local is_header_received = false
     
     local handshake = 
@@ -144,17 +164,27 @@ M.connect = function(ws_url)
     
     socket:on('disconnection', function(errcode)
         is_connected = false
+        is_header_received = false
 
         if on_disconnection_callback ~= nil then
             on_disconnection_callback(errcode, M)
+        end
+
+        if M.options.auto_reconnect then
+            M.reconnect()
         end
     end)
     
     socket:on('reconnection', function(errcode)
         is_connected = false
+        is_header_received = false
 
         if on_disconnection_callback ~= nil then
             on_disconnection_callback(errcode, M)
+        end
+
+        if M.options.auto_reconnect then
+            M.reconnect()
         end
     end)
     
