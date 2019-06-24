@@ -137,7 +137,8 @@ M.connect = function(url, options)
     M.url = url
     
     M.options = extend({
-        auto_reconnect = false
+        auto_reconnect = false,
+        extra_handshake_headers = {}
     }, options)
     
     if M.url:sub(-1) ~= '/' then
@@ -156,7 +157,12 @@ M.connect = function(url, options)
         .. "Sec-WebSocket-Protocol: chat, superchat\r\n"
         .. "Sec-WebSocket-Version: 13\r\n"
         .. "Origin: esp32\r\n"
-        .. "\r\n"
+
+    for _, hdr in pairs(M.options.extra_handshake_headers) do
+        handshake = handshake .. hdr[1] .. ': ' .. hdr[2] .. "\r\n"
+    end
+    
+    handshake = handshake .. "\r\n"
     
     socket = net.createConnection(net.TCP)
 
