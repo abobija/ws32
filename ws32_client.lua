@@ -1,4 +1,4 @@
-M = {}
+local M = {}
 
 M.Opcode = {
    -- ContinuationFrame = 0,
